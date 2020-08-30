@@ -5,9 +5,9 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.tcc.extractor.client.GitHubClient;
-import com.tcc.extractor.dto.GitHubContent;
-import com.tcc.extractor.dto.GitHubRawContent;
-import com.tcc.extractor.dto.RepositoryRequestDTO;
+import com.tcc.extractor.dto.GitHubRepositoryContent;
+import com.tcc.extractor.dto.GitHubContentForTranslation;
+import com.tcc.extractor.dto.TranslationRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,19 +20,35 @@ public class RepositoryService {
   @Autowired
   private GitHubClient client;
 
-  public List<GitHubRawContent> extractFiles(RepositoryRequestDTO repositoryRequestDTO,
+  public List<GitHubContentForTranslation> extractFiles(TranslationRequest translationRequest,
       String gitToken) {
-    List<GitHubContent[]> repositoryContent = client.getRepoContent(
-      repositoryRequestDTO.getRepositoriesUrl(), gitToken);
-    List<GitHubContent> filteredFiles = getFilesWithDesiredExtension(repositoryContent,
-      repositoryRequestDTO.getExtension());
-    return client.getFilesRawContent(filteredFiles, gitToken);
+    List<GitHubRepositoryContent[]> repositoryNestedContent = client.getRepositoryContent(
+      translationRequest.getRepositoriesUrl(), gitToken);
+
+    List<GitHubRepositoryContent> repositoryContent = flatNestedContent(repositoryNestedContent);
+
+    List<GitHubRepositoryContent> filteredFiles = filterFilesByExtension(repositoryContent,
+      translationRequest.getExtension());
+
+    List<GitHubContentForTranslation> filesContent = client.getFilesContent(filteredFiles, gitToken);
+
+    filesContent.forEach(file -> {
+      file.setSourceLanguage(translationRequest.getSourceLanguage());
+      file.setTargetLanguage(translationRequest.getTargetLanguage());
+    });
+
+    return filesContent;
   }
 
-  private List<GitHubContent> getFilesWithDesiredExtension(List<GitHubContent[]> repositoryContent,
+  private List<GitHubRepositoryContent> flatNestedContent(List<GitHubRepositoryContent[]> nestedContent) {
+    return nestedContent.stream()
+      .flatMap(items -> Arrays.stream(items))
+      .collect(Collectors.toList());
+  }
+
+  private List<GitHubRepositoryContent> filterFilesByExtension(List<GitHubRepositoryContent> repositoryContent,
       List<String> extensions) {
     return repositoryContent.stream()
-      .flatMap(items -> Arrays.stream(items))
       .filter(item -> item.getType().equals(CONTENT_TYPE))
       .filter(item -> extensions.stream().anyMatch(ext -> item.getName().contains(ext)))
       .collect(Collectors.toList());

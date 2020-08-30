@@ -1,6 +1,6 @@
 package com.tcc.extractor.dto;
 
-public class GitHubContent {
+public class GitHubRepositoryContent {
 
   private String name;
   private String url;

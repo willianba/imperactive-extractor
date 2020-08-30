@@ -3,8 +3,8 @@ package com.tcc.extractor.client;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.tcc.extractor.dto.GitHubContent;
-import com.tcc.extractor.dto.GitHubRawContent;
+import com.tcc.extractor.dto.GitHubRepositoryContent;
+import com.tcc.extractor.dto.GitHubContentForTranslation;
 
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -16,38 +16,41 @@ import org.springframework.web.client.RestTemplate;
 public class GitHubClient {
 
   private static final int SUBSTRING_BEGINNING = 19;
+  private static final String GITHUB_JSON = "application/vnd.github.v3+json";
+  private static final String GITHUB_RAW = "application/vnd.github.v3.raw";
 
   private RestTemplate restTemplate = new RestTemplate();
 
-  public List<GitHubRawContent> getFilesRawContent(List<GitHubContent> filteredFiles,
-      String gitToken) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.set(HttpHeaders.ACCEPT, "application/vnd.github.v3.raw");
-    headers.set(HttpHeaders.AUTHORIZATION, gitToken);
-    HttpEntity<String> entity = new HttpEntity<>(headers);
+  public List<GitHubContentForTranslation> getFilesContent(
+      List<GitHubRepositoryContent> files, String gitToken) {
+    HttpEntity<String> entity = getHttpEntityWithHeaders(GITHUB_RAW, gitToken);
 
-    return filteredFiles.stream().map(file -> {
-      GitHubRawContent result = new GitHubRawContent();
-      String content = restTemplate.exchange(file.getUrl(), HttpMethod.GET, entity, String.class)
-        .getBody();
-      result.setName(file.getName());
-      result.setContent(content);
-      return result;
+    return files.stream()
+      .map(file -> {
+        GitHubContentForTranslation result = new GitHubContentForTranslation();
+        String content = restTemplate.exchange(file.getUrl(), HttpMethod.GET, entity, String.class)
+          .getBody();
+        result.setName(file.getName());
+        result.setContent(content);
+        return result;
     }).collect(Collectors.toList());
   }
 
-  public List<GitHubContent[]> getRepoContent(List<String> urls, String gitToken) {
-    HttpHeaders headers = new HttpHeaders();
-    headers.set(HttpHeaders.ACCEPT, "application/vnd.github.v3+json");
-    headers.set(HttpHeaders.AUTHORIZATION, gitToken);
-    HttpEntity<String> entity = new HttpEntity<>(headers);
-
+  public List<GitHubRepositoryContent[]> getRepositoryContent(List<String> urls, String gitToken) {
+    HttpEntity<String> entity = getHttpEntityWithHeaders(GITHUB_JSON, gitToken);
     List<String> apiUrls = getDirectoryApiUrl(urls);
 
     return apiUrls.stream()
-      .map(url -> restTemplate.exchange(url, HttpMethod.GET, entity, GitHubContent[].class)
+      .map(url -> restTemplate.exchange(url, HttpMethod.GET, entity, GitHubRepositoryContent[].class)
         .getBody())
       .collect(Collectors.toList());
+  }
+
+  private HttpEntity<String> getHttpEntityWithHeaders(String accept, String authorization) {
+    HttpHeaders headers = new HttpHeaders();
+    headers.set(HttpHeaders.ACCEPT, accept);
+    headers.set(HttpHeaders.AUTHORIZATION, authorization);
+    return new HttpEntity<>(headers);
   }
 
   private List<String> getDirectoryApiUrl(List<String> urls) {

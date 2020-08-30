@@ -4,7 +4,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.tcc.extractor.dto.GitHubRawContent;
+import com.tcc.extractor.dto.GitHubContentForTranslation;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -33,7 +33,7 @@ public class TranslatorPublisher {
   @Value("${translate.routing.key}")
   private String translateRoutingKey;
 
-  public void sendFilesToTranslation(List<GitHubRawContent> files) {
+  public void sendFilesToTranslation(List<GitHubContentForTranslation> files) {
     try {
       String jsonMessage = mapper.writeValueAsString(files);
       Message message = MessageBuilder.withBody(jsonMessage.getBytes())
