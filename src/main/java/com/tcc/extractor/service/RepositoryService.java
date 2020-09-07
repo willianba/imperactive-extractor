@@ -27,7 +27,7 @@ public class RepositoryService {
     List<GitHubRepositoryContent> repositoryContent = flatNestedContent(repositoryNestedContent);
 
     List<GitHubRepositoryContent> filteredFiles = filterFilesByExtension(repositoryContent,
-      translationRequest.getExtension());
+      translationRequest.getFileExtension());
 
     List<GitHubContentForTranslation> filesContent = client.getFilesContent(filteredFiles);
 
