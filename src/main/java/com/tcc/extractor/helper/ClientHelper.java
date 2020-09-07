@@ -20,7 +20,8 @@ public class ClientHelper {
   private String[] getUserAndRepo(String gitUrl) {
     Pattern pattern = Pattern.compile("\\.com/(.*)");
     Matcher matcher = pattern.matcher(gitUrl);
-    return matcher.group().split("/");
+    matcher.find(); // TODO remove, bad practice
+    return matcher.group(1).split("/");
   }
 
   private String getDirectoryFormattedApiUrl(String[] userAndRepo) {
