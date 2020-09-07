@@ -39,7 +39,7 @@ public class TranslatorPublisher {
       Message message = MessageBuilder.withBody(jsonMessage.getBytes())
         .setContentType(MessageProperties.CONTENT_TYPE_JSON).build();
       amqpTemplate.send(directExchange, translateRoutingKey, message);
-      logger.info("Message sent to translation");
+      logger.info("Sent {} files for translation", files.size());
     } catch (JsonProcessingException e) {
       logger.error("Error converting message to JSON: {}", e.getMessage());
     }
