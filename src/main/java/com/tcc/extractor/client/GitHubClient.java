@@ -4,8 +4,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import com.tcc.extractor.dto.GitHubRepositoryContent;
+import com.tcc.extractor.helper.ClientHelper;
 import com.tcc.extractor.dto.GitHubContentForTranslation;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -15,15 +18,20 @@ import org.springframework.web.client.RestTemplate;
 @Component
 public class GitHubClient {
 
-  private static final int SUBSTRING_BEGINNING = 19;
   private static final String GITHUB_JSON = "application/vnd.github.v3+json";
   private static final String GITHUB_RAW = "application/vnd.github.v3.raw";
 
   private RestTemplate restTemplate = new RestTemplate();
 
+  @Autowired
+  private ClientHelper clientHelper;
+
+  @Value("${github.personal.token}")
+  private String gitPersonalToken;
+
   public List<GitHubContentForTranslation> getFilesContent(
-      List<GitHubRepositoryContent> files, String gitToken) {
-    HttpEntity<String> entity = getHttpEntityWithHeaders(GITHUB_RAW, gitToken);
+      List<GitHubRepositoryContent> files) {
+    HttpEntity<String> entity = getHttpEntityWithHeaders(GITHUB_RAW);
 
     return files.stream()
       .map(file -> {
@@ -36,9 +44,9 @@ public class GitHubClient {
     }).collect(Collectors.toList());
   }
 
-  public List<GitHubRepositoryContent[]> getRepositoryContent(List<String> urls, String gitToken) {
-    HttpEntity<String> entity = getHttpEntityWithHeaders(GITHUB_JSON, gitToken);
-    List<String> apiUrls = getDirectoryApiUrl(urls);
+  public List<GitHubRepositoryContent[]> getRepositoryContent(List<String> urls) {
+    HttpEntity<String> entity = getHttpEntityWithHeaders(GITHUB_JSON);
+    List<String> apiUrls = clientHelper.getDirectoryApiUrl(urls);
 
     return apiUrls.stream()
       .map(url -> restTemplate.exchange(url, HttpMethod.GET, entity, GitHubRepositoryContent[].class)
@@ -46,33 +54,10 @@ public class GitHubClient {
       .collect(Collectors.toList());
   }
 
-  private HttpEntity<String> getHttpEntityWithHeaders(String accept, String authorization) {
+  private HttpEntity<String> getHttpEntityWithHeaders(String accept) {
     HttpHeaders headers = new HttpHeaders();
     headers.set(HttpHeaders.ACCEPT, accept);
-    headers.set(HttpHeaders.AUTHORIZATION, authorization);
+    headers.set(HttpHeaders.AUTHORIZATION, "token " + gitPersonalToken);
     return new HttpEntity<>(headers);
-  }
-
-  private List<String> getDirectoryApiUrl(List<String> urls) {
-    return urls.stream()
-      .map(this::getSplittedUrl)
-      .map(this::getDirectoryFormattedApiUrl)
-      .collect(Collectors.toList());
-  }
-
-  private String[] getSplittedUrl(String gitUrl) {
-    return gitUrl.substring(SUBSTRING_BEGINNING).split("/");
-  }
-
-  private String getDirectoryFormattedApiUrl(String[] splittedUrl) {
-    StringBuilder sb = new StringBuilder();
-    String user = splittedUrl[0];
-    String repo = splittedUrl[1];
-    return sb.append("https://api.github.com/repos/")
-      .append(user)
-      .append("/")
-      .append(repo)
-      .append("/contents")
-      .toString();
   }
 }
