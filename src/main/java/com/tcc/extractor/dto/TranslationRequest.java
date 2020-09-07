@@ -5,7 +5,7 @@ import java.util.List;
 public class TranslationRequest {
 
   private List<String> repositoriesUrl;
-  private List<String> extension;
+  private List<String> fileExtension;
   private String sourceLanguage;
   private String targetLanguage;
 
@@ -18,11 +18,11 @@ public class TranslationRequest {
   }
 
   public List<String> getExtension() {
-    return this.extension;
+    return this.fileExtension;
   }
 
-  public void setExtension(List<String> extension) {
-    this.extension = extension;
+  public void setExtension(List<String> fileExtension) {
+    this.fileExtension = fileExtension;
   }
 
   public String getSourceLanguage() {
