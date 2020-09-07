@@ -13,7 +13,6 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -28,9 +27,8 @@ public class RepositoryController {
   private TranslatorPublisher publisher;
 
   @PostMapping
-  public ResponseEntity<String> extractFiles(@RequestBody TranslationRequest translationRequest,
-      @RequestHeader(name = "GitToken") String gitToken) {
-    List<GitHubContentForTranslation> files = service.extractFiles(translationRequest, gitToken);
+  public ResponseEntity<String> extractFiles(@RequestBody TranslationRequest translationRequest) {
+    List<GitHubContentForTranslation> files = service.extractFiles(translationRequest);
 
     if (!files.isEmpty()) {
       publisher.sendFilesToTranslation(files);

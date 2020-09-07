@@ -20,17 +20,16 @@ public class RepositoryService {
   @Autowired
   private GitHubClient client;
 
-  public List<GitHubContentForTranslation> extractFiles(TranslationRequest translationRequest,
-      String gitToken) {
+  public List<GitHubContentForTranslation> extractFiles(TranslationRequest translationRequest) {
     List<GitHubRepositoryContent[]> repositoryNestedContent = client.getRepositoryContent(
-      translationRequest.getRepositoriesUrl(), gitToken);
+      translationRequest.getRepositoriesUrl());
 
     List<GitHubRepositoryContent> repositoryContent = flatNestedContent(repositoryNestedContent);
 
     List<GitHubRepositoryContent> filteredFiles = filterFilesByExtension(repositoryContent,
       translationRequest.getExtension());
 
-    List<GitHubContentForTranslation> filesContent = client.getFilesContent(filteredFiles, gitToken);
+    List<GitHubContentForTranslation> filesContent = client.getFilesContent(filteredFiles);
 
     filesContent.forEach(file -> {
       file.setSourceLanguage(translationRequest.getSourceLanguage());
