@@ -17,11 +17,11 @@ public class TranslationRequest {
     this.repositoriesUrl = repositoriesUrl;
   }
 
-  public List<String> getExtension() {
+  public List<String> getFileExtension() {
     return this.fileExtension;
   }
 
-  public void setExtension(List<String> fileExtension) {
+  public void setFileExtension(List<String> fileExtension) {
     this.fileExtension = fileExtension;
   }
 
