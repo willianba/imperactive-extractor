@@ -34,14 +34,16 @@ public class TranslatorPublisher {
   private String translateRoutingKey;
 
   public void sendFilesToTranslation(List<GitHubContentForTranslation> files) {
-    try {
-      String jsonMessage = mapper.writeValueAsString(files);
-      Message message = MessageBuilder.withBody(jsonMessage.getBytes())
-        .setContentType(MessageProperties.CONTENT_TYPE_JSON).build();
-      amqpTemplate.send(directExchange, translateRoutingKey, message);
-      logger.info("Sent {} files for translation", files.size());
-    } catch (JsonProcessingException e) {
-      logger.error("Error converting message to JSON: {}", e.getMessage());
-    }
+    files.forEach(file -> {
+      try {
+        String jsonMessage = mapper.writeValueAsString(file);
+        Message message = MessageBuilder.withBody(jsonMessage.getBytes())
+          .setContentType(MessageProperties.CONTENT_TYPE_JSON).build();
+        amqpTemplate.send(directExchange, translateRoutingKey, message);
+        logger.info("Sent file {} for translation", file.getName());
+      } catch (JsonProcessingException e) {
+        logger.error("Error converting message to JSON: {}", e.getMessage());
+      }
+    });
   }
 }
