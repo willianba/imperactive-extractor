@@ -4,7 +4,6 @@ public class GitHubRepositoryContent {
 
   private String name;
   private String url;
-  private String downloadUrl;
   private String type;
 
   public String getName() {
@@ -21,14 +20,6 @@ public class GitHubRepositoryContent {
 
   public void setUrl(String url) {
     this.url = url;
-  }
-
-  public String getDownloadUrl() {
-    return this.downloadUrl;
-  }
-
-  public void setDownloadUrl(String downloadUrl) {
-    this.downloadUrl = downloadUrl;
   }
 
   public String getType() {
