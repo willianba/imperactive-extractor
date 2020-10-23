@@ -48,10 +48,19 @@ public class GitHubClient {
     HttpEntity<String> entity = getHttpEntityWithHeaders(GITHUB_JSON);
     List<String> apiUrls = clientHelper.getDirectoryApiUrl(urls);
 
-    return apiUrls.stream()
+    // i'm ashamed of this 'solution'
+    try {
+      return apiUrls.stream()
       .map(url -> restTemplate.exchange(url, HttpMethod.GET, entity, GitHubRepositoryContent[].class)
         .getBody())
       .collect(Collectors.toList());
+    } catch (Exception ex) {
+      return apiUrls.stream()
+        .map(url -> restTemplate.exchange(url, HttpMethod.GET, entity, GitHubRepositoryContent.class)
+          .getBody())
+        .map(resultObject -> new GitHubRepositoryContent[] {resultObject})
+        .collect(Collectors.toList());
+    }
   }
 
   private HttpEntity<String> getHttpEntityWithHeaders(String accept) {

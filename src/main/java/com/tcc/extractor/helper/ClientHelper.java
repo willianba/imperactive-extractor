@@ -10,29 +10,57 @@ import org.springframework.stereotype.Component;
 @Component
 public class ClientHelper {
 
+  private static final String FILE = "blob";
+  private static final String DIRECTORY = "tree";
+
   public List<String> getDirectoryApiUrl(List<String> urls) {
     return urls.stream()
-      .map(this::getUserAndRepo)
+      .map(this::getRepoPath)
       .map(this::getDirectoryFormattedApiUrl)
       .collect(Collectors.toList());
   }
 
-  private String[] getUserAndRepo(String gitUrl) {
+  private String getRepoPath(String gitUrl) {
     Pattern pattern = Pattern.compile("\\.com/(.*)");
     Matcher matcher = pattern.matcher(gitUrl);
     matcher.find(); // TODO remove, bad practice
-    return matcher.group(1).split("/");
+    return matcher.group(1);
   }
 
-  private String getDirectoryFormattedApiUrl(String[] userAndRepo) {
+  private String getDirectoryFormattedApiUrl(String repoPath) {
     StringBuilder sb = new StringBuilder();
-    String user = userAndRepo[0];
-    String repo = userAndRepo[1];
+    String[] urlParameters = getUrlParameters(repoPath);
     return sb.append("https://api.github.com/repos/")
-      .append(user)
+      .append(urlParameters[0])
       .append("/")
-      .append(repo)
-      .append("/contents")
+      .append(urlParameters[1])
+      .append("/contents/")
+      .append(urlParameters[2])
       .toString();
+  }
+
+  private String[] getUrlParameters(String repoPath) {
+    String[] splittedPath = repoPath.split("/");
+    if (repoPath.contains(FILE)) {
+      return new String[] {
+        splittedPath[0],
+        splittedPath[1],
+        splittedPath[4] + "/" + splittedPath[5] // ugly af but no time brother, also tighy coupled to my repo
+      };
+    }
+
+    if (repoPath.contains(DIRECTORY)) {
+      return new String[] {
+        splittedPath[0],
+        splittedPath[1],
+        splittedPath[4]
+      };
+    }
+
+    return new String[] { // array for a root's repo url
+      splittedPath[0],
+      splittedPath[1],
+      ""
+    };
   }
 }
